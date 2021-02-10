@@ -31,7 +31,6 @@ export class TestingFrameWork implements ComponentFramework.StandardControl<IInp
 	public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container:HTMLDivElement)
 	{
 
-
 		this.context = context;
 		this.container = container;
 		let rset: recordset = {
@@ -54,7 +53,7 @@ export class TestingFrameWork implements ComponentFramework.StandardControl<IInp
 				),
 				this.container
 			)
-
+					
 			retrieveMultiple(testData, FetchJson);
 			updateRecord(testData, "account", "1c9c6f0a-1767-4d43-8e88-419527c4717b", rset);
 		}

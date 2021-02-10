@@ -103,7 +103,7 @@ export class Condition {
     ['@value']: string;
 }
 
-class Filter {
+export class Filter {
     ['@type']: string;
     condition: Condition[];
 

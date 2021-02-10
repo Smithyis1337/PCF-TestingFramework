@@ -1,10 +1,5 @@
 import * as React from 'react';
-import {TestData, ITestDataProps, FetchJson, FetchJSON, Condition, recordset} from "./TestData"
-
-interface ITestDivProps {
-    environment: string;
-    data: TestData<ITestDataProps>;
-}
+import {TestData, ITestDataProps, FetchJson, FetchJSON, Condition, recordset, Filter} from "./TestData"
 
 export class TestDiv extends React.Component <ITestDivProps> {
     static defaultProps = {
@@ -74,6 +69,121 @@ export class TestDiv extends React.Component <ITestDivProps> {
                     </div>
                 </div>
                 
+    }
+}
+
+interface ITestDivProps {
+    environment: string;
+    data: TestData<ITestDataProps>;
+}
+
+class RetrieveMultipleResults {
+    private retreiveMultipleFilter: RetrieveMultipleFilter;
+
+    filterType(retrieveMultipleFilter: RetrieveMultipleFilter){
+        this.retreiveMultipleFilter = retrieveMultipleFilter;
+    }
+    
+    runFilter(TestData: TestData<ITestDataProps>, query: FetchJSON){
+        return this.retreiveMultipleFilter.filter(TestData, query)
+    }
+}
+
+interface RetrieveMultipleFilter {
+    filter(TestData: TestData<ITestDataProps>, query: FetchJSON): string[][];
+}
+
+class FilterOr implements RetrieveMultipleFilter{
+    filter(TestData: TestData<ITestDataProps>, query: FetchJSON): string[][] {
+        let conditions: Condition[] = query.entity.filter.condition;
+    let recordi: number = 0;
+    let cols = TestData.data.dataset[recordi].columns;
+    let results: Array<string[]> = new Array<string[]>();
+
+    //Find correct recordset
+    for (var i = 0; i < TestData.data.dataset.length; i++){
+        let entity: string = TestData.data.dataset[i].columns[0];
+        if (entity === query.entity['@name']){
+            recordi = i;
+        }
+    }
+
+    for (var ii = 0; ii < conditions.length; ii++){
+        let v: string = conditions[ii]['@value'];
+        let x: number = ii;
+        if (conditions[ii]['@operator'] === "eq"){
+            console.log("equals");
+                    for (var iii = 0; iii < cols.length; iii++){
+                        if (cols[iii] === conditions[x]['@attribute']){
+                            console.log(conditions[x]['@attribute'] + " attr matched")
+                            let ci: number = iii -1;
+                            let mr:Array<string[]> = ReturnRecords(recordi, ci, v, TestData);
+                            
+                            for (var ri = 0; ri < mr.length; ri++){
+                                results.push(mr[ri])
+                            }
+                        }
+                    }
+        }
+        if (conditions[ii]['@operator'] === "ne"){
+            
+        }
+    }
+    //console.log(results);
+    return results;
+
+
+    }
+}
+
+class FilterAnd implements RetrieveMultipleFilter{
+    filter(TestData: TestData<ITestDataProps>, query: FetchJSON): string[][] {
+        console.log("and run");
+
+    let conditions: Condition[] = query.entity.filter.condition;
+    let recordi: number = 0;
+    let cols = TestData.data.dataset[recordi].columns;
+    let results: Array<string[]> = new Array<string[]>();
+
+    //Find correct recordset
+    for (var i = 0; i < TestData.data.dataset.length; i++){
+        let entity: string = TestData.data.dataset[i].columns[0];
+        if (entity === query.entity['@name']){
+            recordi = i;
+        }
+    }
+
+    // For every condition find records, first condition searches in all records, 2nd condition in results of first, 3rd in results of 2nd and so on
+    for (var ii = 0; ii < conditions.length; ii++){
+        let v: string = conditions[ii]['@value'];
+        if (conditions[ii]['@operator'] === "eq"){
+            for (var iii = 0; iii < cols.length; iii++){
+                if (cols[iii] === conditions[ii]['@attribute']){
+                    console.log(conditions[ii]['@attribute'] + " attr matched")
+                    let ci: number = iii -1;
+
+                    if (ii === 0){
+                        results = ReturnRecords(recordi, ci, v, TestData);
+                        console.log("mr= " + results);
+                    }
+                    else if (ii != 0 || results.length != 0){
+                        results = ReturnRecordsofRecords(results, ci, v)
+                        console.log("elseif results= " + results);
+                    }
+                    
+                    // for (var ri = 0; ri < mr.length; ri++){
+                    //     results.push(mr[ri])
+                    // }
+                }
+            }
+        }
+        else if (conditions[ii]['@operator'] === "ne"){
+
+        }
+
+    }
+    //console.log(results);
+    return results;
     }
 }
 
@@ -176,7 +286,7 @@ export function retrieveMultiple(TestData: TestData<ITestDataProps>, query: Fetc
 
     console.log(query);
     let results: Array<string[]>
-    
+    let resultsgatherer: RetrieveMultipleResults = new RetrieveMultipleResults();
     let validated: boolean = ValidateFetch(TestData, query);
 
     if (validated === false) {
@@ -185,17 +295,18 @@ export function retrieveMultiple(TestData: TestData<ITestDataProps>, query: Fetc
     }
 
     //get conditions
-
     let filter = query.entity.filter;
 
+    //Set filter type, then get results of filter
     if (filter['@type'] === "or"){
-        results = OrFilter(TestData, query);
-        console.log("ranand");
+        resultsgatherer.filterType(new FilterOr())
     }
     else if (filter['@type'] === "and"){
-       results = AndFilter(TestData, query);
-       console.log("rmr and: " + results);
+    resultsgatherer.filterType(new FilterAnd())
     }
+
+    results = resultsgatherer.runFilter(TestData, query)
+    console.log("Results: " + results)
 
 
 }
@@ -294,95 +405,6 @@ export function updateRecord(TestData: TestData<ITestDataProps>, entity: string,
     console.log("Record updated:");
     console.log(TestData.data.dataset[recordtypei].records[recordnumberi]);
     
-}
-
-function AndFilter(TestData: TestData<ITestDataProps>, query: FetchJSON){
-    console.log("and run");
-
-    let conditions: Condition[] = query.entity.filter.condition;
-    let recordi: number = 0;
-    let cols = TestData.data.dataset[recordi].columns;
-    let results: Array<string[]> = new Array<string[]>();
-
-    //Find correct recordset
-    for (var i = 0; i < TestData.data.dataset.length; i++){
-        let entity: string = TestData.data.dataset[i].columns[0];
-        if (entity === query.entity['@name']){
-            recordi = i;
-        }
-    }
-
-    // For every condition find records, first condition searches in all records, 2nd condition in results of first, 3rd in results of 2nd and so on
-    for (var ii = 0; ii < conditions.length; ii++){
-        let v: string = conditions[ii]['@value'];
-        if (conditions[ii]['@operator'] === "eq"){
-            for (var iii = 0; iii < cols.length; iii++){
-                if (cols[iii] === conditions[ii]['@attribute']){
-                    console.log(conditions[ii]['@attribute'] + " attr matched")
-                    let ci: number = iii -1;
-
-                    if (ii === 0){
-                        results = ReturnRecords(recordi, ci, v, TestData);
-                        console.log("mr= " + results);
-                    }
-                    else if (ii != 0 || results.length != 0){
-                        results = ReturnRecordsofRecords(results, ci, v)
-                        console.log("elseif results= " + results);
-                    }
-                    
-                    // for (var ri = 0; ri < mr.length; ri++){
-                    //     results.push(mr[ri])
-                    // }
-                }
-            }
-        }
-        else if (conditions[ii]['@operator'] === "ne"){
-
-        }
-
-    }
-    console.log(results);
-    return results;
-}
-
-function OrFilter(TestData: TestData<ITestDataProps>, query: FetchJSON){
-
-    let conditions: Condition[] = query.entity.filter.condition;
-    let recordi: number = 0;
-    let cols = TestData.data.dataset[recordi].columns;
-    let results: Array<string[]> = new Array<string[]>();
-
-    //Find correct recordset
-    for (var i = 0; i < TestData.data.dataset.length; i++){
-        let entity: string = TestData.data.dataset[i].columns[0];
-        if (entity === query.entity['@name']){
-            recordi = i;
-        }
-    }
-
-    for (var ii = 0; ii < conditions.length; ii++){
-        let v: string = conditions[ii]['@value'];
-        let x: number = ii;
-        if (conditions[ii]['@operator'] === "eq"){
-            console.log("equals");
-                    for (var iii = 0; iii < cols.length; iii++){
-                        if (cols[iii] === conditions[x]['@attribute']){
-                            console.log(conditions[x]['@attribute'] + " attr matched")
-                            let ci: number = iii -1;
-                            let mr:Array<string[]> = ReturnRecords(recordi, ci, v, TestData);
-                            
-                            for (var ri = 0; ri < mr.length; ri++){
-                                results.push(mr[ri])
-                            }
-                        }
-                    }
-        }
-        if (conditions[ii]['@operator'] === "ne"){
-            
-        }
-    }
-    console.log(results);
-    return results;
 }
 
 function ReturnRecordsofRecords(records: Array<string[]>, columni: number, value: string){
