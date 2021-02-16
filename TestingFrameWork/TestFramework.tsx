@@ -1,5 +1,9 @@
 import * as React from 'react';
-import {TestData, ITestDataProps, FetchJson, FetchJSON, Condition, recordset, Filter} from "./TestData"
+import { IInputs } from './generated/ManifestTypes';
+import {TestData, ITestDataProps, FetchJson, FetchJSON, Condition, recordset, Filter, testData} from "./TestData"
+import {FetchResults} from "./FetchAlgorithm"
+
+let context: ComponentFramework.Context<IInputs>;
 
 export class TestDiv extends React.Component <ITestDivProps> {
     static defaultProps = {
@@ -77,10 +81,11 @@ interface ITestDivProps {
     data: TestData<ITestDataProps>;
 }
 
-class RetrieveMultipleResults {
-    private retreiveMultipleFilter: RetrieveMultipleFilter;
 
-    filterType(retrieveMultipleFilter: RetrieveMultipleFilter){
+class RetrieveMultipleResults {
+    private retreiveMultipleFilter: IRetrieveMultipleFilter;
+
+    filterType(retrieveMultipleFilter: IRetrieveMultipleFilter){
         this.retreiveMultipleFilter = retrieveMultipleFilter;
     }
     
@@ -89,11 +94,11 @@ class RetrieveMultipleResults {
     }
 }
 
-interface RetrieveMultipleFilter {
+interface IRetrieveMultipleFilter {
     filter(TestData: TestData<ITestDataProps>, query: FetchJSON): string[][];
 }
 
-class FilterOr implements RetrieveMultipleFilter{
+class FilterOr implements IRetrieveMultipleFilter{
     filter(TestData: TestData<ITestDataProps>, query: FetchJSON): string[][] {
         let conditions: Condition[] = query.entity.filter.condition;
     let recordi: number = 0;
@@ -136,7 +141,7 @@ class FilterOr implements RetrieveMultipleFilter{
     }
 }
 
-class FilterAnd implements RetrieveMultipleFilter{
+class FilterAnd implements IRetrieveMultipleFilter{
     filter(TestData: TestData<ITestDataProps>, query: FetchJSON): string[][] {
         console.log("and run");
 
@@ -170,22 +175,17 @@ class FilterAnd implements RetrieveMultipleFilter{
                         results = ReturnRecordsofRecords(results, ci, v)
                         console.log("elseif results= " + results);
                     }
-                    
-                    // for (var ri = 0; ri < mr.length; ri++){
-                    //     results.push(mr[ri])
-                    // }
                 }
             }
         }
         else if (conditions[ii]['@operator'] === "ne"){
-
         }
-
     }
     //console.log(results);
     return results;
     }
 }
+
 
 //Read the test data for debugging purposes
 function readData(TestData: TestData<ITestDataProps>){
@@ -283,6 +283,9 @@ export function deleteRecord(TestData: TestData<ITestDataProps>, entitytype: str
 }
 
 export function retrieveMultiple(TestData: TestData<ITestDataProps>, query: FetchJSON){
+
+    let getresults = new FetchResults()
+    getresults.GatherResults(testData, query);
 
     console.log(query);
     let results: Array<string[]>
@@ -496,4 +499,12 @@ function ValidateFetch(TestData: TestData<ITestDataProps>, query: FetchJSON){
     }
 
     return columncheckfinal;
+}
+
+export function SetContext(cont: ComponentFramework.Context<IInputs>){
+    context = cont;
+}
+
+export function ReturnContext(){
+    console.log(context.parameters.sampleDataSet);
 }

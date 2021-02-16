@@ -2,7 +2,7 @@ import {IInputs, IOutputs} from "./generated/ManifestTypes";
 import DataSetInterfaces = ComponentFramework.PropertyHelper.DataSetApi;
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import {TestDiv, createRecord, retrieveMultiple, updateRecord} from "./TestFramework";
+import {TestDiv, createRecord, retrieveMultiple, updateRecord, SetContext, ReturnContext} from "./TestFramework";
 import {TestData, FetchJson, testData, FetchJSON, recordset} from "./TestData";
 type DataSet = ComponentFramework.PropertyTypes.DataSet;
 import * as fs from 'fs';
@@ -10,7 +10,7 @@ import * as fs from 'fs';
 export class TestingFrameWork implements ComponentFramework.StandardControl<IInputs, IOutputs> {
 	
 	private isTest: Boolean = false;
-	private context: ComponentFramework.Context<IInputs>;
+	public context: ComponentFramework.Context<IInputs>;
 	private container: HTMLDivElement;
 	private testData: object[];
 	private testProps: object;
@@ -30,8 +30,8 @@ export class TestingFrameWork implements ComponentFramework.StandardControl<IInp
 	 */
 	public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container:HTMLDivElement)
 	{
-
 		this.context = context;
+		SetContext(context);
 		this.container = container;
 		let rset: recordset = {
 			columns: ["name","address1"],
@@ -62,7 +62,7 @@ export class TestingFrameWork implements ComponentFramework.StandardControl<IInp
 			
 		}
 
-		
+		ReturnContext();
 
 	}
 
