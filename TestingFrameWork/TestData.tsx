@@ -152,7 +152,7 @@ export const FetchJson: FetchJSON = {
           "@descending": "false"
        },
        "filter": {
-          "@type": "and",
+          "@type": "or",
           "condition": [
              {
                 "@attribute": "firstname",
@@ -162,7 +162,7 @@ export const FetchJson: FetchJSON = {
              {
                 "@attribute": "lastname",
                 "@operator": "eq",
-                "@value": "Smith"
+                "@value": "Bloggs"
              }
           ]
        }

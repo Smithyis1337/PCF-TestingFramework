@@ -32,24 +32,31 @@ class RetrieveMultipleResults{
             this.filterresults.push(r);
         }
 
-        console.log("Filter Results:")
-        console.log(this.filterresults);
-
         if (filtertype === "and"){
-            //...take each result from above condition...
+            //...take each result from the first condition...
             for (var ii = 0; ii < this.filterresults[0].length; ii++){
-                //...and check it exists in other filters
+                //...and check it exists in other conditions
                 let r: string[][] = this.filterresults[0]
                 let singleresult: string[] = r[ii]
                 let exists: boolean = AndFilterCheck(this.filterresults, singleresult);
-                this.results.push(singleresult);
+                if (exists === true){
+                    this.results.push(singleresult);
+                }
             }
-            //Add code for sorting AND results
             return this.results;
-
         }
         else if (filtertype === "or"){
-            this.results = [[]];
+            //For each results set
+            for (var iii = 0; iii < this.filterresults.length; iii++){
+                let resultsset: string[][] = this.filterresults[iii];
+                for (var r = 0; r < resultsset.length; r++){
+                    let exists: boolean = OrFilterCheck(resultsset[r], this.results);
+                    if (exists === false){
+                        this.results.push(resultsset[r])
+                    }
+                }
+
+            }
             //Add code for sorting OR results
             return this.results
         }
@@ -69,7 +76,7 @@ class ConditionResultsFinder{
             this.conditionType = new ConditionEq;
         }
         else if (operator === "ne"){
-
+            this.conditionType = new ConditionNe;
         }
     }
 
@@ -111,6 +118,23 @@ class ConditionEq implements IConditionType{
         return results;
     }
     
+}
+
+class ConditionNe implements IConditionType{
+    Run(testData: TestData<ITestDataProps>, condition: Condition, entity: string): string[][] {
+        throw new Error("Method not implemented.");
+    }
+    
+}
+
+function OrFilterCheck(result: string[], results: string[][]): boolean{
+    let exists: boolean = false;
+    for (var i = 0; i < results.length; i++){
+        if (results[i] === result){
+            exists = true;
+        }
+    }
+    return exists;
 }
 
 function AndFilterCheck(filterresults: string[][][], result: string[]): boolean{
