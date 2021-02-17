@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { IInputs } from './generated/ManifestTypes';
-import {TestData, ITestDataProps, FetchJson, FetchJSON, Condition, recordset, Filter, testData} from "./TestData"
+import {TestData, ITestDataProps, FetchJson, FetchJSON, recordset, testData} from "./TestData"
 import {FetchResults} from "./FetchAlgorithm"
 
 let context: ComponentFramework.Context<IInputs>;
