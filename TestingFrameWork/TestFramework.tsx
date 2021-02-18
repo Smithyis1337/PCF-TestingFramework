@@ -1,10 +1,9 @@
 import * as React from 'react';
-import {TestData, ITestDataProps, FetchJson, FetchJSON, Condition, recordset} from "./TestData"
+import { IInputs } from './generated/ManifestTypes';
+import {TestData, ITestDataProps, FetchJson, FetchJSON, recordset, testData} from "./TestData"
+import {FetchResults} from "./FetchAlgorithm"
 
-interface ITestDivProps {
-    environment: string;
-    data: TestData<ITestDataProps>;
-}
+let context: ComponentFramework.Context<IInputs>;
 
 export class TestDiv extends React.Component <ITestDivProps> {
     static defaultProps = {
@@ -75,6 +74,11 @@ export class TestDiv extends React.Component <ITestDivProps> {
                 </div>
                 
     }
+}
+
+interface ITestDivProps {
+    environment: string;
+    data: TestData<ITestDataProps>;
 }
 
 //Read the test data for debugging purposes
@@ -172,32 +176,19 @@ export function deleteRecord(TestData: TestData<ITestDataProps>, entitytype: str
     console.log("Record of id:" + recordid + " has been deleted");
 }
 
-export function retrieveMultiple(TestData: TestData<ITestDataProps>, query: FetchJSON){
+export function retrieveMultiple(TestData: TestData<ITestDataProps>, query: FetchJSON): string[][]{
+    let validated: boolean = ValidateFetch(testData, query);
+    let results: string[][] = new Array<string[]>();
 
-    console.log(query);
-    let results: Array<string[]>
-    
-    let validated: boolean = ValidateFetch(TestData, query);
-
-    if (validated === false) {
-        console.log("Fetch validation failed")
-        return;
+    if (validated){
+        let getresults = new FetchResults();
+        results = getresults.GatherResults(testData, query);
+    }
+    else {
+        console.log("Fetch Validation Errors");
     }
 
-    //get conditions
-
-    let filter = query.entity.filter;
-
-    if (filter['@type'] === "or"){
-        results = OrFilter(TestData, query);
-        console.log("ranand");
-    }
-    else if (filter['@type'] === "and"){
-       results = AndFilter(TestData, query);
-       console.log("rmr and: " + results);
-    }
-
-
+    return results;
 }
 
 export function retrieveRecord(TestData: TestData<ITestDataProps>, entity: string, guid: string){
@@ -296,125 +287,7 @@ export function updateRecord(TestData: TestData<ITestDataProps>, entity: string,
     
 }
 
-function AndFilter(TestData: TestData<ITestDataProps>, query: FetchJSON){
-    console.log("and run");
-
-    let conditions: Condition[] = query.entity.filter.condition;
-    let recordi: number = 0;
-    let cols = TestData.data.dataset[recordi].columns;
-    let results: Array<string[]> = new Array<string[]>();
-
-    //Find correct recordset
-    for (var i = 0; i < TestData.data.dataset.length; i++){
-        let entity: string = TestData.data.dataset[i].columns[0];
-        if (entity === query.entity['@name']){
-            recordi = i;
-        }
-    }
-
-    // For every condition find records, first condition searches in all records, 2nd condition in results of first, 3rd in results of 2nd and so on
-    for (var ii = 0; ii < conditions.length; ii++){
-        let v: string = conditions[ii]['@value'];
-        if (conditions[ii]['@operator'] === "eq"){
-            for (var iii = 0; iii < cols.length; iii++){
-                if (cols[iii] === conditions[ii]['@attribute']){
-                    console.log(conditions[ii]['@attribute'] + " attr matched")
-                    let ci: number = iii -1;
-
-                    if (ii === 0){
-                        results = ReturnRecords(recordi, ci, v, TestData);
-                        console.log("mr= " + results);
-                    }
-                    else if (ii != 0 || results.length != 0){
-                        results = ReturnRecordsofRecords(results, ci, v)
-                        console.log("elseif results= " + results);
-                    }
-                    
-                    // for (var ri = 0; ri < mr.length; ri++){
-                    //     results.push(mr[ri])
-                    // }
-                }
-            }
-        }
-        else if (conditions[ii]['@operator'] === "ne"){
-
-        }
-
-    }
-    console.log(results);
-    return results;
-}
-
-function OrFilter(TestData: TestData<ITestDataProps>, query: FetchJSON){
-
-    let conditions: Condition[] = query.entity.filter.condition;
-    let recordi: number = 0;
-    let cols = TestData.data.dataset[recordi].columns;
-    let results: Array<string[]> = new Array<string[]>();
-
-    //Find correct recordset
-    for (var i = 0; i < TestData.data.dataset.length; i++){
-        let entity: string = TestData.data.dataset[i].columns[0];
-        if (entity === query.entity['@name']){
-            recordi = i;
-        }
-    }
-
-    for (var ii = 0; ii < conditions.length; ii++){
-        let v: string = conditions[ii]['@value'];
-        let x: number = ii;
-        if (conditions[ii]['@operator'] === "eq"){
-            console.log("equals");
-                    for (var iii = 0; iii < cols.length; iii++){
-                        if (cols[iii] === conditions[x]['@attribute']){
-                            console.log(conditions[x]['@attribute'] + " attr matched")
-                            let ci: number = iii -1;
-                            let mr:Array<string[]> = ReturnRecords(recordi, ci, v, TestData);
-                            
-                            for (var ri = 0; ri < mr.length; ri++){
-                                results.push(mr[ri])
-                            }
-                        }
-                    }
-        }
-        if (conditions[ii]['@operator'] === "ne"){
-            
-        }
-    }
-    console.log(results);
-    return results;
-}
-
-function ReturnRecordsofRecords(records: Array<string[]>, columni: number, value: string){
-
-    let matchingrecords: Array<string[]> = new Array<string[]>();
-
-    for (var i = 0; i < records.length; i++)
-    {
-        let record: string[] = records[i];
-        if (record[columni] === value){
-            matchingrecords.push(records[i]);
-        }
-    }
-
-    return matchingrecords;
-}
-
-function ReturnRecords(entityi: number, columni: number, value: string, TestData: TestData<ITestDataProps>){
-    let matchingrecords: Array<string[]> = new Array<string[]>()
-
-    for (var i = 0 ; i < TestData.data.dataset[entityi].records.length; i++){
-        let r = TestData.data.dataset[entityi].records[i];
-        if (r[columni] === value){
-            console.log(TestData.data.dataset[entityi].records[i])
-            matchingrecords.push(TestData.data.dataset[entityi].records[i])
-        }
-    }
-
-    return matchingrecords;
-}
-
-function ValidateFetch(TestData: TestData<ITestDataProps>, query: FetchJSON){
+function ValidateFetch(TestData: TestData<ITestDataProps>, query: FetchJSON):boolean{
 
     let entitytype: string = query.entity['@name']
     let entitytypei: number = 0;
@@ -474,4 +347,12 @@ function ValidateFetch(TestData: TestData<ITestDataProps>, query: FetchJSON){
     }
 
     return columncheckfinal;
+}
+
+export function SetContext(cont: ComponentFramework.Context<IInputs>){
+    context = cont;
+}
+
+export function ReturnContext(){
+    console.log(context.parameters.sampleDataSet);
 }
