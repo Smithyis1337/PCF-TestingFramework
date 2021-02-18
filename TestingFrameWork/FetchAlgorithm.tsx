@@ -78,6 +78,12 @@ class ConditionResultsFinder{
         else if (operator === "ne"){
             this.conditionType = new ConditionNe;
         }
+        else if (operator === "like"){
+            this.conditionType = new ConditionLike;
+        }
+        else if(operator === "not-like"){
+            this.conditionType = new ConditionNotLike;
+        }
     }
 
     RunCondition(testData: TestData<ITestDataProps>, condition: Condition, entity: string): string[][]{
@@ -121,6 +127,40 @@ class ConditionEq implements IConditionType{
 }
 
 class ConditionNe implements IConditionType{
+    Run(testData: TestData<ITestDataProps>, condition: Condition, entity: string): string[][] {
+        let results: string[][] = new Array<string[]>();
+        let value: string = condition["@value"];
+        let field: string = condition["@attribute"];
+        let recordnumber: number = FindRecordNumber(testData, entity);
+        let records: string[][] = testData.data.dataset[recordnumber].records
+        let columns: string[] = testData.data.dataset[recordnumber].columns;
+        let columnnumber: number = FindColumnNumber(testData, condition["@attribute"], columns);
+
+        let matchingrecords: Array<string[]> = new Array<string[]>();
+        
+        throw new Error("Method not implemented.");
+    }
+    
+}
+
+class ConditionLike implements IConditionType{
+    Run(testData: TestData<ITestDataProps>, condition: Condition, entity: string): string[][] {
+        let results: string[][] = new Array<string[]>();
+        let value: string = condition["@value"];
+        let field: string = condition["@attribute"];
+        let recordnumber: number = FindRecordNumber(testData, entity);
+        let records: string[][] = testData.data.dataset[recordnumber].records
+        let columns: string[] = testData.data.dataset[recordnumber].columns;
+        let columnnumber: number = FindColumnNumber(testData, condition["@attribute"], columns);
+
+        let matchingrecords: Array<string[]> = new Array<string[]>();
+        
+        throw new Error("Method not implemented.");
+    }
+    
+}
+
+class ConditionNotLike implements IConditionType{
     Run(testData: TestData<ITestDataProps>, condition: Condition, entity: string): string[][] {
         let results: string[][] = new Array<string[]>();
         let value: string = condition["@value"];

@@ -176,16 +176,19 @@ export function deleteRecord(TestData: TestData<ITestDataProps>, entitytype: str
     console.log("Record of id:" + recordid + " has been deleted");
 }
 
-export function retrieveMultiple(TestData: TestData<ITestDataProps>, query: FetchJSON){
+export function retrieveMultiple(TestData: TestData<ITestDataProps>, query: FetchJSON): string[][]{
     let validated: boolean = ValidateFetch(testData, query);
+    let results: string[][] = new Array<string[]>();
 
     if (validated){
         let getresults = new FetchResults();
-        getresults.GatherResults(testData, query);
+        results = getresults.GatherResults(testData, query);
     }
     else {
         console.log("Fetch Validation Errors");
     }
+
+    return results;
 }
 
 export function retrieveRecord(TestData: TestData<ITestDataProps>, entity: string, guid: string){
