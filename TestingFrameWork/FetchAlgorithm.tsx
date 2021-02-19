@@ -84,6 +84,9 @@ class ConditionResultsFinder{
         else if(operator === "not-like"){
             this.conditionType = new ConditionNotLike;
         }
+        else {
+            throw new Error("Unrecognized conidition operator!")
+        }
     }
 
     RunCondition(testData: TestData<ITestDataProps>, condition: Condition, entity: string): string[][]{
@@ -118,8 +121,6 @@ class ConditionEq implements IConditionType{
                 results.push(record)
             }
         }
-
-        console.log("Condition = " + entity + condition["@value"] + condition["@operator"] + condition["@attribute"])
         console.log(results);
         return results;
     }

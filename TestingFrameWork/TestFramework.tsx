@@ -101,7 +101,7 @@ function readData(TestData: TestData<ITestDataProps>){
     return recordtypesRD;
 }
 
-export function createRecord(TestData: TestData<ITestDataProps>, entitytype: string, recorddata: string[]){
+export async function createRecord(TestData: TestData<ITestDataProps>, entitytype: string, recorddata: string[]): Promise<string[]>{
 
     console.log("Running createRecord");
     let recordtypeexists: boolean;
@@ -120,21 +120,21 @@ export function createRecord(TestData: TestData<ITestDataProps>, entitytype: str
 
     //Validation steps:
     if (recordtypeexists == false){
-        console.log("ERROR: record type does not exist in test data")
-        return;
+        throw new Error("Record type does not exist in test data.");
+        
     }
 
     //-1 ignores the record type identifier column
     if (TestData.data.dataset[recordtypei].columns.length - 1 !== recorddata.length)
     {
-        console.log("Error: Incorrect Data format. Data does not match the entities defined columnset")
-        return;
+        throw new Error("Incorrect Data format: Data does not match the entities defined columnset.");
     }
 
     console.log("Valid Data detected. Processing....");
 
     TestData.data.dataset[recordtypei].records.push(recorddata);
     console.log(TestData.data.dataset[recordtypei].records)
+    return recorddata;
 }
 
 export function deleteRecord(TestData: TestData<ITestDataProps>, entitytype: string, recordid: string){
@@ -176,7 +176,7 @@ export function deleteRecord(TestData: TestData<ITestDataProps>, entitytype: str
     console.log("Record of id:" + recordid + " has been deleted");
 }
 
-export function retrieveMultiple(TestData: TestData<ITestDataProps>, query: FetchJSON): string[][]{
+export async function retrieveMultiple(TestData: TestData<ITestDataProps>, query: FetchJSON): Promise<string[][]>{
     let validated: boolean = ValidateFetch(testData, query);
     let results: string[][] = new Array<string[]>();
 
@@ -347,12 +347,4 @@ function ValidateFetch(TestData: TestData<ITestDataProps>, query: FetchJSON):boo
     }
 
     return columncheckfinal;
-}
-
-export function SetContext(cont: ComponentFramework.Context<IInputs>){
-    context = cont;
-}
-
-export function ReturnContext(){
-    console.log(context.parameters.sampleDataSet);
 }
