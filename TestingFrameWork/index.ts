@@ -2,18 +2,18 @@ import {IInputs, IOutputs} from "./generated/ManifestTypes";
 import DataSetInterfaces = ComponentFramework.PropertyHelper.DataSetApi;
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import {TestDiv, createRecord, retrieveMultiple, updateRecord, SetContext, ReturnContext} from "./TestFramework";
+import {TestDiv, updateRecord} from "./TestFramework";
 import {TestData, FetchJson, testData, FetchJSON, recordset} from "./TestData";
+import {FakeWebAPI} from './FakeWebAPI';
 type DataSet = ComponentFramework.PropertyTypes.DataSet;
-import * as fs from 'fs';
 
 export class TestingFrameWork implements ComponentFramework.StandardControl<IInputs, IOutputs> {
 	
 	private isTest: Boolean = false;
 	public context: ComponentFramework.Context<IInputs>;
 	private container: HTMLDivElement;
-	private testData: object[];
 	private testProps: object;
+	private webAPI: FakeWebAPI;
 	
 	constructor()
 	{
@@ -31,7 +31,8 @@ export class TestingFrameWork implements ComponentFramework.StandardControl<IInp
 	public init(context: ComponentFramework.Context<IInputs>, notifyOutputChanged: () => void, state: ComponentFramework.Dictionary, container:HTMLDivElement)
 	{
 		this.context = context;
-		SetContext(context);
+		this.webAPI = new FakeWebAPI(context, testData)
+
 		this.container = container;
 		let rset: recordset = {
 			columns: ["name","address1"],
@@ -53,17 +54,14 @@ export class TestingFrameWork implements ComponentFramework.StandardControl<IInp
 				),
 				this.container
 			)
-					
-			retrieveMultiple(testData, FetchJson);
-			updateRecord(testData, "account", "1c9c6f0a-1767-4d43-8e88-419527c4717b", rset);
 		}
 		else
 		{
-			
+
 		}
-
-		ReturnContext();
-
+		this.webAPI.RetrieveMultiple("", FetchJson, 0);
+		this.webAPI.CreateRecord("contact", ['95fe5ef5-1bf5-49e0-9745-ca9c02fac52f','New','Record','02fbf207-9e8e-4cde-bb23-9a0edec55543'])
+		this.webAPI.UpdateRecord("1c9c6f0a-1767-4d43-8e88-419527c4717b", "account", rset)
 	}
 
 

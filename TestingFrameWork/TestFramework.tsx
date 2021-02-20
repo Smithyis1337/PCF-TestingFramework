@@ -101,7 +101,7 @@ function readData(TestData: TestData<ITestDataProps>){
     return recordtypesRD;
 }
 
-export function createRecord(TestData: TestData<ITestDataProps>, entitytype: string, recorddata: string[]){
+export async function createRecord(TestData: TestData<ITestDataProps>, entitytype: string, recorddata: string[]): Promise<string[]>{
 
     console.log("Running createRecord");
     let recordtypeexists: boolean;
@@ -120,24 +120,24 @@ export function createRecord(TestData: TestData<ITestDataProps>, entitytype: str
 
     //Validation steps:
     if (recordtypeexists == false){
-        console.log("ERROR: record type does not exist in test data")
-        return;
+        throw new Error("Record type does not exist in test data.");
+        
     }
 
     //-1 ignores the record type identifier column
     if (TestData.data.dataset[recordtypei].columns.length - 1 !== recorddata.length)
     {
-        console.log("Error: Incorrect Data format. Data does not match the entities defined columnset")
-        return;
+        throw new Error("Incorrect Data format: Data does not match the entities defined columnset.");
     }
 
     console.log("Valid Data detected. Processing....");
 
     TestData.data.dataset[recordtypei].records.push(recorddata);
     console.log(TestData.data.dataset[recordtypei].records)
+    return recorddata;
 }
 
-export function deleteRecord(TestData: TestData<ITestDataProps>, entitytype: string, recordid: string){
+export async function deleteRecord(TestData: TestData<ITestDataProps>, entitytype: string, recordid: string): Promise<string>{
     console.log("Running deleteRecord")
     let recordtypeexists: boolean = false;
     let recordtypei: number = 0;
@@ -154,12 +154,10 @@ export function deleteRecord(TestData: TestData<ITestDataProps>, entitytype: str
 
         //Validation steps:
     if (recordtypeexists == false){
-        console.log("ERROR: record type does not exist in test data")
-        return;
+        throw new Error("ERROR: record type does not exist in test data");
     }
     else if (recordid.length !== 36){
-        console.log("Invalid Guid format")
-        return;
+        throw new Error("Invalid Guid format");
     }
 
     //find record number
@@ -173,10 +171,10 @@ export function deleteRecord(TestData: TestData<ITestDataProps>, entitytype: str
 
     //delete record
     TestData.data.dataset[recordtypei].records.splice(recordnumberi, 1);
-    console.log("Record of id:" + recordid + " has been deleted");
+    return ("Record of id:" + recordid + " has been deleted");
 }
 
-export function retrieveMultiple(TestData: TestData<ITestDataProps>, query: FetchJSON): string[][]{
+export async function retrieveMultiple(TestData: TestData<ITestDataProps>, query: FetchJSON): Promise<string[][]>{
     let validated: boolean = ValidateFetch(testData, query);
     let results: string[][] = new Array<string[]>();
 
@@ -191,7 +189,7 @@ export function retrieveMultiple(TestData: TestData<ITestDataProps>, query: Fetc
     return results;
 }
 
-export function retrieveRecord(TestData: TestData<ITestDataProps>, entity: string, guid: string){
+export async function retrieveRecord(TestData: TestData<ITestDataProps>, entity: string, guid: string): Promise<string[]>{
     console.log("Running retrieve record")
     let recordtypeexists: boolean = false;
     let recordtypei: number = 0;
@@ -208,12 +206,10 @@ export function retrieveRecord(TestData: TestData<ITestDataProps>, entity: strin
 
         //Validation steps:
     if (recordtypeexists == false){
-        console.log("ERROR: record type does not exist in test data")
-        return;
+        throw new Error("ERROR: record type does not exist in test data");
     }
     else if (guid.length !== 36){
-        console.log("Invalid Guid format")
-        return;
+        throw new Error("Invalid Guid format");
     }
 
     //find record number
@@ -228,7 +224,7 @@ export function retrieveRecord(TestData: TestData<ITestDataProps>, entity: strin
     return recordf;
 }
 
-export function updateRecord(TestData: TestData<ITestDataProps>, entity: string, guid: string, record: recordset){
+export async function updateRecord(TestData: TestData<ITestDataProps>, entity: string, guid: string, record: recordset): Promise<string>{
     console.log("Running update record")
     let recordtypeexists: boolean = false;
     let recordtypei: number = 0;
@@ -246,12 +242,10 @@ export function updateRecord(TestData: TestData<ITestDataProps>, entity: string,
 
         //Validation steps:
     if (recordtypeexists == false){
-        console.log("ERROR: record type does not exist in test data")
-        return;
+        throw new Error("ERROR: record type does not exist in test data");
     }
     else if (guid.length !== 36){
-        console.log("Invalid Guid format")
-        return;
+        throw new Error("Invalid Guid format");
     }
 
     //find record number
@@ -282,8 +276,8 @@ export function updateRecord(TestData: TestData<ITestDataProps>, entity: string,
         var rvals: string[] = record.records[0];
         field[col] = rvals[i]; 
     }
-    console.log("Record updated:");
     console.log(TestData.data.dataset[recordtypei].records[recordnumberi]);
+    return "Record Updated";
     
 }
 
@@ -347,12 +341,4 @@ function ValidateFetch(TestData: TestData<ITestDataProps>, query: FetchJSON):boo
     }
 
     return columncheckfinal;
-}
-
-export function SetContext(cont: ComponentFramework.Context<IInputs>){
-    context = cont;
-}
-
-export function ReturnContext(){
-    console.log(context.parameters.sampleDataSet);
 }
