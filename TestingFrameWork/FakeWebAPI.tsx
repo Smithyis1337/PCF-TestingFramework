@@ -1,6 +1,6 @@
 import { IInputs } from './generated/ManifestTypes';
 import {TestData, ITestDataProps, FetchJSON} from "./TestData"
-import {createRecord, retrieveMultiple, updateRecord, deleteRecord} from "./TestFramework";
+import {createRecord, retrieveMultiple, updateRecord, deleteRecord, retrieveRecord} from "./TestFramework";
 
 export class FakeWebAPI{
     private context: ComponentFramework.Context<IInputs>;
@@ -46,6 +46,42 @@ export class FakeWebAPI{
         }
         else {
             results = await this.context.webAPI.retrieveMultipleRecords(entitytype, options, maxpagesize);
+            return results;
+        }
+    }
+
+    async DeleteRecord(guid: string, entitytype: string): Promise<any>{
+        let results: any;
+        if (this.istestenv){
+            results = await deleteRecord(this.testData, entitytype, guid);
+            return results;
+        }
+        else {
+            results = await this.context.webAPI.deleteRecord(entitytype, guid);
+            return results;
+        }
+    }
+
+    async RetrieveRecord(guid: string, entitytype: string, options: string): Promise<any>{
+        let results: any;
+        if (this.istestenv){
+            results = await retrieveRecord(this.testData, entitytype, guid);
+            return results;
+        }
+        else {
+            results = await this.context.webAPI.retrieveRecord(entitytype, guid, options);
+            return results
+        }
+    }
+
+    async UpdateRecord(guid: string, entitytype: string, data: any): Promise<any>{
+        let results: any;
+        if (this.istestenv){
+           results = await updateRecord(this.testData, entitytype, guid, data)
+           return results; 
+        }
+        else {
+            results = await this.context.webAPI.updateRecord(entitytype, guid, data);
             return results;
         }
     }
