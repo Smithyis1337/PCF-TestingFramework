@@ -29,7 +29,7 @@ Once imported you can instantiate a new instance of the class in your `init` met
 		this.webAPI = new FakeWebAPI(context, testData);
 	}
 
- As you can see above we imported simple fed the `FakeWebAPI` class both our context and our test data.
+ As you can see above we simply fed the `FakeWebAPI` class both our context and our test data.
 
 **Making API Calls**
 
