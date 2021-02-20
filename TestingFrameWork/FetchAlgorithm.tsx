@@ -1,5 +1,6 @@
 import {TestData, ITestDataProps, FetchJson, FetchJSON, Condition, recordset, Filter} from "./TestData"
 
+
 // This Class Exists for expansion to use multiple Filters. Change GatherResults to search through multiple filters
 export class FetchResults{
     private results: string[][];
@@ -55,7 +56,6 @@ class RetrieveMultipleResults{
                         this.results.push(resultsset[r])
                     }
                 }
-
             }
             //Add code for sorting OR results
             return this.results
@@ -65,27 +65,19 @@ class RetrieveMultipleResults{
 
 }
 
-
 // Add In new Condition types here in the SetType method
 class ConditionResultsFinder{
     private conditionType: IConditionType;
     private results: string[][];
 
     SetType(operator: string){
-        if (operator === "eq"){
-            this.conditionType = new ConditionEq;
-        }
-        else if (operator === "ne"){
-            this.conditionType = new ConditionNe;
-        }
-        else if (operator === "like"){
-            this.conditionType = new ConditionLike;
-        }
-        else if(operator === "not-like"){
-            this.conditionType = new ConditionNotLike;
-        }
-        else {
-            throw new Error("Unrecognized conidition operator!")
+        
+        for (var i = 0; i < ConditionList.length; i++){
+            let o: any = ConditionList[i].operator;
+            if(o === operator){
+                this.conditionType = ConditionList[i].GetType();
+                console.log("Type set: " + o);
+            }
         }
     }
 
@@ -98,11 +90,19 @@ class ConditionResultsFinder{
 }
 
 interface IConditionType{
+    operator: string;
+    GetType(): IConditionType;
     Run(testData: TestData<ITestDataProps>, condition: Condition, entity: string): string[][];
-
+    ReturnResults(records: string[][], columnnumber: number, value: string): string[][];
 }
 
-class ConditionEq implements IConditionType{
+abstract class ConditionType implements IConditionType{
+    abstract operator: string;
+
+    GetType(): any{
+        return this;
+    }
+    
     Run(testData: TestData<ITestDataProps>, condition: Condition, entity: string): string[][] {
         let results: string[][] = new Array<string[]>();
         let value: string = condition["@value"];
@@ -112,8 +112,19 @@ class ConditionEq implements IConditionType{
         let columns: string[] = testData.data.dataset[recordnumber].columns;
         let columnnumber: number = FindColumnNumber(testData, condition["@attribute"], columns);
 
-        let matchingrecords: Array<string[]> = new Array<string[]>();
+        results = this.ReturnResults(records, columnnumber, value);
+        return results;
+    }
 
+    abstract ReturnResults(records: string[][], columnnumber: number, value: string): string[][];
+    
+}
+
+class ConditionEq extends ConditionType{
+    operator: string = "eq";
+
+    ReturnResults(records: string[][], columnnumber: number, value: string): string[][] {
+        let results: string[][] = new Array<string[]>();
         for (var i = 0; i < records.length; i++){
             let record: string[] = records[i];
             if (record[columnnumber] === value){
@@ -127,56 +138,38 @@ class ConditionEq implements IConditionType{
     
 }
 
-class ConditionNe implements IConditionType{
-    Run(testData: TestData<ITestDataProps>, condition: Condition, entity: string): string[][] {
-        let results: string[][] = new Array<string[]>();
-        let value: string = condition["@value"];
-        let field: string = condition["@attribute"];
-        let recordnumber: number = FindRecordNumber(testData, entity);
-        let records: string[][] = testData.data.dataset[recordnumber].records
-        let columns: string[] = testData.data.dataset[recordnumber].columns;
-        let columnnumber: number = FindColumnNumber(testData, condition["@attribute"], columns);
-
-        let matchingrecords: Array<string[]> = new Array<string[]>();
-        
-        throw new Error("Method not implemented.");
-    }
+class ConditionNe extends ConditionType{
+    operator: string = "ne";
     
+    ReturnResults(records: string[][], columnnumber: number, value: string): string[][] {
+        let results: string[][] = new Array<string[]>();
+
+        return results;
+    }
 }
 
-class ConditionLike implements IConditionType{
-    Run(testData: TestData<ITestDataProps>, condition: Condition, entity: string): string[][] {
-        let results: string[][] = new Array<string[]>();
-        let value: string = condition["@value"];
-        let field: string = condition["@attribute"];
-        let recordnumber: number = FindRecordNumber(testData, entity);
-        let records: string[][] = testData.data.dataset[recordnumber].records
-        let columns: string[] = testData.data.dataset[recordnumber].columns;
-        let columnnumber: number = FindColumnNumber(testData, condition["@attribute"], columns);
-
-        let matchingrecords: Array<string[]> = new Array<string[]>();
-        
-        throw new Error("Method not implemented.");
-    }
+class ConditionLike extends ConditionType{
+    operator: string = "like";
     
+    ReturnResults(records: string[][], columnnumber: number, value: string): string[][] {
+        let results: string[][] = new Array<string[]>();
+
+        return results;
+    }
 }
 
-class ConditionNotLike implements IConditionType{
-    Run(testData: TestData<ITestDataProps>, condition: Condition, entity: string): string[][] {
-        let results: string[][] = new Array<string[]>();
-        let value: string = condition["@value"];
-        let field: string = condition["@attribute"];
-        let recordnumber: number = FindRecordNumber(testData, entity);
-        let records: string[][] = testData.data.dataset[recordnumber].records
-        let columns: string[] = testData.data.dataset[recordnumber].columns;
-        let columnnumber: number = FindColumnNumber(testData, condition["@attribute"], columns);
-
-        let matchingrecords: Array<string[]> = new Array<string[]>();
-        
-        throw new Error("Method not implemented.");
-    }
+class ConditionNotLike extends ConditionType{
+    operator: string = "not-like";
     
+    ReturnResults(records: string[][], columnnumber: number, value: string): string[][] {
+        let results: string[][] = new Array<string[]>();
+
+        return results;
+    }
 }
+
+const ConditionList: any[] = [new ConditionEq(), new ConditionNe(), new ConditionLike(), new ConditionNotLike()];
+
 
 function OrFilterCheck(result: string[], results: string[][]): boolean{
     let exists: boolean = false;
