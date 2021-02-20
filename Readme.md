@@ -90,7 +90,7 @@ This should be self explanatory, I would however like to point out the optional 
 
 ## RetrieveMultiple API Query
 
-So the retrieve multiple API query is a bit more complex than the others and requires a bit more explanation. If you want to run a retrieve multiple query you must provide `webAPI.RetrieveMultiple()` with a query of type `FetchJSON`. This type however is easy to generate, simply create your FetchXML in dynamics and define a var/const in the following way:
+So the retrieve multiple API query is a bit more complex than the others and requires a bit more explanation. If you want to run a retrieve multiple query you must provide `webAPI.RetrieveMultiple()` with a query of type `FetchJSON`. This type however is easy to generate, simply create your FetchXML in dynamics and convert it to JSON. Then just define a var/const in the following way:
 
     const FetchQuery: FetchJSON = {INSERT JSON HERE}
 
