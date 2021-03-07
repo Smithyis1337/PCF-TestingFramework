@@ -143,6 +143,13 @@ class ConditionNe extends ConditionType{
     
     ReturnResults(records: string[][], columnnumber: number, value: string): string[][] {
         let results: string[][] = new Array<string[]>();
+        for (var i = 0; i < records.length; i++){
+            let record: string[] = records[i];
+            if (record[columnnumber] != value){
+                console.log("Record found Ne");
+                results.push(record);
+            }
+        }
 
         return results;
     }
@@ -153,6 +160,14 @@ class ConditionLike extends ConditionType{
     
     ReturnResults(records: string[][], columnnumber: number, value: string): string[][] {
         let results: string[][] = new Array<string[]>();
+        for (var i = 0; i < records.length; i++){
+            let record: string[] = records[i];
+            var v = value.toLowerCase();
+            if (record[columnnumber].toLocaleLowerCase().includes(v)){
+                console.log("Found Like")
+                results.push(record);
+            }
+        }
 
         return results;
     }
@@ -163,6 +178,14 @@ class ConditionNotLike extends ConditionType{
     
     ReturnResults(records: string[][], columnnumber: number, value: string): string[][] {
         let results: string[][] = new Array<string[]>();
+        for (var i = 0; i < records.length; i++){
+            let record: string[] = records[i];
+            var v = value.toLowerCase();
+            if (!record[columnnumber].toLocaleLowerCase().includes(v)){
+                console.log("Found Not Like")
+                results.push(record);
+            }
+        }
 
         return results;
     }
