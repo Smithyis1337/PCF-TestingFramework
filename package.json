@@ -11,6 +11,7 @@
   "dependencies": {
     "@types/node": "^10.12.18",
     "@types/powerapps-component-framework": "^1.2.0",
+    "@types/xrm": "^9.0.33",
     "fast-xml-parser": "^3.17.6",
     "fs": "0.0.1-security",
     "he": "^1.2.0",

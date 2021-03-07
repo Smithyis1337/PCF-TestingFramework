@@ -85,4 +85,51 @@ export class FakeWebAPI{
             return results;
         }
     }
+
+    async XMLRequest(query: string, rtype: string): Promise<any>{
+        let results: any;
+        if (this.istestenv){
+
+        }
+        else {
+            results = await this.RealXML(query, rtype)
+        }
+    }
+
+    async RealXML(query: string, rtype: string): Promise<any>{
+        var req = new XMLHttpRequest()
+        var baseurl: string = Xrm.Utility.getGlobalContext().getClientUrl();
+        return new Promise(function (resolve, reject) {
+            req.open(rtype, baseurl + query, true);
+            req.onreadystatechange = function () {
+                if (req.readyState !== 4) return;
+                if (req.status >= 200 && req.status < 300){
+                    try{
+                        var result = JSON.parse(req.responseText);
+                        if (req.status < 0 ) {
+                            reject({
+                                status: "rejected",
+                                statusText: result.StatusMessage 
+                            });
+                        }
+                        resolve(result);
+                    }
+                    catch (error) {
+                        throw error;
+                    }
+                }
+                else {
+                    reject({
+                        status: "didnt work",
+                        statusText: result.StatusMessage
+                    })
+                }
+            }
+            req.setRequestHeader("OData-MaxVersion", "4.0");
+			req.setRequestHeader("OData-Version", "4.0");
+			req.setRequestHeader("Accept", "application/json");
+			req.setRequestHeader("Content-Type", "application/json; charset=utf-8");
+			req.send();
+        })
+    }
 }
