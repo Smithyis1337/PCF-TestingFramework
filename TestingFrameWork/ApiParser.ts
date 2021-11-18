@@ -149,7 +149,7 @@ class MetaDataOperation extends ParseOperation{
 }
 
 class EntityOperation extends ParseOperation{
-    priority: number;
+    priority: number = 2;
     requestType: string[] = ["GET", "PUT"];
     entityType: string;
     CheckValidOperation(query: string): boolean {
@@ -194,7 +194,7 @@ class EntityOperation extends ParseOperation{
 }
 
 class SelectOperation extends ParseOperation{
-    priority: number;
+    priority: number = 3;
     requestType: string[] = ["GET"];
     results = new Array<string[]>();
     CheckValidOperation(query: string): boolean {
@@ -248,5 +248,76 @@ class SelectOperation extends ParseOperation{
     
 }
 
+class FilterOperation extends ParseOperation {
+    priority: number = 4;
+    requestType: string[] = ["GET"];
+    results = new Array<string[]>();
+    CheckValidOperation(query: string): boolean {
+        let check: boolean = query.includes("&$filter=");
+        console.log("Filter Found");
+
+        return check;
+    }
+    RunOperation(query: string, td: TestData<ITestDataProps>, results: string[][], first: boolean): string[][] {
+        if (first === true){
+            throw new Error("Filter Operation must never be run first")
+        }
+        else{
+            let n: number = query.indexOf("&$filter=");
+            n = n + 9;
+            let substr: string = query.slice(n)
+            let filters: string[] = substr.split(" ");
+
+            console.log("FILTERS");
+            console.log(filters);
+
+            let filtersarray: Array<string>[] = [];
+            let singlefilter: string[] = new Array<string>();
+            let countthree: number = 0;
+
+            for(var i = 0; i < filters.length; i++){
+                countthree = countthree + 1;
+                if (countthree < 4){
+                    singlefilter.push(filters[i]);
+                    if (countthree == 3){
+                        filtersarray.push(singlefilter)
+                    }
+                }
+                else {
+                    countthree = 1;
+                    singlefilter = new Array<string>();
+                    singlefilter.push(filters[i]);
+                }
+            }
+            console.log(filtersarray);
+
+
+
+            throw new Error("Results Not Yet Implemented")
+        }
+    }
+
+}
+
+abstract class FilterOperators {
+    abstract operator: string;
+
+    ReturnOperator(): string{
+        return this.operator;
+    }
+
+    abstract ReturnResults(results: Array<string[]>, col: string, value: string): Array<string[]>;
+}
+
+class EQFilterOperator extends FilterOperators{
+    operator: string = "eq";
+    ReturnResults(results: Array<string[]>, col: string, value: string): string[][] {
+        console.log(results);
+        throw new Error("Method not implemented.");
+    }
+
+}
+
 const requestTypes: any[] = [new GetRequest(), new PostRequest(), new PutRequest(), new PatchRequest(), new DeleteRequest()];
-const dataOperations: any[] = [new EntityOperation(), new SelectOperation()];
+const dataOperations: any[] = [new EntityOperation(), new SelectOperation(), new FilterOperation()];
+const filteroperators: any[] = [new EQFilterOperator()]

@@ -64,7 +64,7 @@ export class TestingFrameWork implements ComponentFramework.StandardControl<IInp
 		this.webAPI.CreateRecord("contact", ['95fe5ef5-1bf5-49e0-9745-ca9c02fac52f','New','Record','02fbf207-9e8e-4cde-bb23-9a0edec55543'])
 		this.webAPI.UpdateRecord("1c9c6f0a-1767-4d43-8e88-419527c4717b", "account", rset)
 
-		var parser: APIParser = new APIParser("accounts?$select=name,address1", "GET")
+		var parser: APIParser = new APIParser("accounts?$select=name,address1&$filter=name eq HH", "GET")
 		parser.RunRequest();
 	}
 
